@@ -67,6 +67,20 @@ lazy_static! {
                 content_type: "application/javascript",
             },
         );
+        f.insert(
+            "/Captcha-On-Edge.png",
+            Page {
+                body: include_bytes!("../images/Captcha-On-Edge.png"),
+                content_type: "image/png",
+            },
+        );
+        f.insert(
+            "/.well-known/fastly/demo-manifest",
+            Page {
+                body: include_bytes!("../.well-known/fastly/demo-manifest"),
+                content_type: "application/octet-stream",
+            },
+        );
         f
     };
 }
