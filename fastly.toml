@@ -1,0 +1,6 @@
+version = 14
+name = "SigSciCaptcha"
+description = "SigSci Captcha project"
+authors = ["jay.bhaskar@gmail.com"]
+language = "rust"
+service_id = "3GYVYprtgRdBBSABC8xCPC"
