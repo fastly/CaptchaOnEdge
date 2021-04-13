@@ -68,7 +68,7 @@ lazy_static! {
             },
         );
         f.insert(
-            "/Captcha-On-Edge.png",
+            "/images/Captcha-On-Edge.png",
             Page {
                 body: include_bytes!("../images/Captcha-On-Edge.png"),
                 content_type: "image/png",
@@ -79,6 +79,20 @@ lazy_static! {
             Page {
                 body: include_bytes!("../.well-known/fastly/demo-manifest"),
                 content_type: "application/octet-stream",
+            },
+        );
+        f.insert(
+            "/moment.js",
+            Page {
+                body: include_bytes!("../static/moment.js"),
+                content_type: "application/javascript",
+            },
+        );
+        f.insert(
+            "/jquery-3.6.0.min.js",
+            Page {
+                body: include_bytes!("../static/jquery-3.6.0.min.js"),
+                content_type: "application/javascript",
             },
         );
         f
