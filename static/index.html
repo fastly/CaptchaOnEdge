@@ -48,36 +48,28 @@
 <body>
   <div class="container">
     <h1>Type captcha</h1>
-    <hr />
   </div>
 
   <form id="myform">
-    <div class="block form-group">
-      <article id="capheader" class="border shadow p-3">
+      <article id="capheader">
       <h2>Captcha to verify</h2>
       </article>
 
-      <article id="output" class="border shadow p-3">
+      <article id="output">
         <div class="spinner-border text-primary" role="status">
           <img src="" alt=""  width="500px" />
         </div>
         <div id="progress"></div>
       </article>
-    </div>
 
-
-    <div class="block form-group">
-      <article id="input" class="border shadow p-3">
+      <article id="input">
       <label for="captcha_text">Enter captcha shown above</label>
       <input type='text' name='captcha_text' id="captcha_text" required="required"/>
       </article>
-    </div>
 
-    <div class="block" class="border shadow p-3">
-      <article id="submit" class="border shadow p-3">
+      <article id="submit">
       <button type="submit" class="action">Submit</button>
       </article>
-    </div>
 
   </form>
 
