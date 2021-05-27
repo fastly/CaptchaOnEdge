@@ -47,10 +47,14 @@
 
 <body>
   <div class="container">
-    <h3>Generate and verify captcha on Fastly Compute@Edge</h3>
+    <h2>Generate/Verify captcha on Compute@Edge</h2>
   </div>
 
   <form id="myform">
+
+      <article id="capheader" class="border shadow p-1">
+	      <h3>Captcha to verify</h3>
+      </article>
 
       <article id="output" class="border shadow p-1">
         <div class="spinner-border text-primary" role="status">
@@ -64,7 +68,7 @@
       <input type='text' name='captcha_text' id="captcha_text" required="required"/>
       </article>
 
-      <article id="submit" class="border shadow p-1">
+      <article id="submit">
       <button type="submit" class="action">Submit</button>
       </article>
 

@@ -17,6 +17,7 @@ views:
 ---
 
 ## What's going on here?
+Due to cookie requirements in order verify captcha please visit https://captcha.edgecompute.app/
 
 This is a Rust app running on Compute@Edgge that generates a [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) and saves a signed token in a cookie which is used to verify the CAPTCHA when it is resolved.  If the user enters an incorrect string, they will be presented with a new CAPTCHA to solve.  Once the challenge is successfully solved the screen will refresh after 4s.
 
