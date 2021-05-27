@@ -47,27 +47,24 @@
 
 <body>
   <div class="container">
-    <h1>Type captcha</h1>
+    <h3>Generate and verify captcha on Fastly Compute@Edge</h3>
   </div>
 
   <form id="myform">
-      <article id="capheader">
-      <h2>Captcha to verify</h2>
-      </article>
 
-      <article id="output">
+      <article id="output" class="border shadow p-1">
         <div class="spinner-border text-primary" role="status">
           <img src="" alt=""  width="500px" />
         </div>
         <div id="progress"></div>
       </article>
 
-      <article id="input">
+      <article id="input" class="border shadow p-1">
       <label for="captcha_text">Enter captcha shown above</label>
       <input type='text' name='captcha_text' id="captcha_text" required="required"/>
       </article>
 
-      <article id="submit">
+      <article id="submit" class="border shadow p-1">
       <button type="submit" class="action">Submit</button>
       </article>
 
