@@ -81,14 +81,14 @@ lazy_static! {
                 content_type: "application/octet-stream",
             },
         );
-        f.insert(
+	f.insert(
             "/moment.js",
             Page {
                 body: include_bytes!("../static/moment.js"),
                 content_type: "application/javascript",
             },
         );
-        f.insert(
+	f.insert(
             "/jquery-3.6.0.min.js",
             Page {
                 body: include_bytes!("../static/jquery-3.6.0.min.js"),
@@ -196,7 +196,7 @@ fn main(mut req: Request) -> Result<Response, Error> {
                 .with_header("Access-Control-Allow-Origin", "*")
                 .with_header("Content-Type", "image/png")
                 .with_header("Custom-Header", "Fastly Captcha")
-                .with_header("set-cookie", format!("captcha-string={}; ", hex::encode(captcha_signature)))
+                .with_header("set-cookie", format!("captcha-string={}; SameSite=None; Secure", hex::encode(captcha_signature)))
                 .with_body(Body::try_from(img_cap)?))
 
         }
