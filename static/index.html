@@ -47,7 +47,7 @@
 
 <body>
   <div class="container">
-    <h2>Generate/Verify captcha on Compute@Edge</h2>
+    <!---- <h2>Captcha on Compute@Edge</h2> ---->
   </div>
 
   <form id="myform">
@@ -63,14 +63,50 @@
         <div id="progress"></div>
       </article>
 
-      <article id="input" class="border shadow p-1">
+      <style>
+
+	left {
+	    position: absolute;
+	    top: 10; right: 100px; left:5px; 
+	}
+	right {
+	    float: right
+	}
+	input-group {
+	    display: table;
+	position: relative;
+	  z-index: 2;
+	  float: left;
+	  width: 100%;
+	  margin-bottom: 0;
+	    display: inline-table;
+	    vertical-align: middle;
+	}
+	input-group-btn{
+	    display: table-cell;
+	    width: 1%;
+	  white-space: nowrap;
+	  vertical-align: middle;
+	}
+
+	form-control{
+	    display: table-cell;
+	    width: 100%;
+	}
+	</style>
+
+      <div class="input-group">
+      <article id="input">
+      <input type='text' name='captcha_text' id="captcha_text" required="required" class="form-control" />
       <label for="captcha_text">Enter captcha shown above</label>
-      <input type='text' name='captcha_text' id="captcha_text" required="required"/>
       </article>
 
+      <span class="input-group-btn">
       <article id="submit">
-      <button type="submit" class="action">Submit</button>
+      <button type="submit" class="right">Submit</button>
       </article>
+      </span>
+      </div>
 
   </form>
 
