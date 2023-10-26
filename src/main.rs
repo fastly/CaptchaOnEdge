@@ -9,7 +9,7 @@ use std::str;
 use cookie::Cookie;
 
 use fastly::http::{header, HeaderValue, Method, StatusCode};
-use fastly::{Body, Error, Request, Response, Dictionary};
+use fastly::{Body, Error, Request, Response, ConfigStore};
 
 extern crate captcha;
 use captcha::{gen, Difficulty};
@@ -21,9 +21,6 @@ use std::convert::TryFrom;
 use std::collections::HashMap;
 
 /// The name of a backend server associated with this service.
-///
-/// This should be changed to match the name of your own backend. See the the `Hosts` section of
-/// the Fastly WASM service UI for more information.
 const BACKEND_NAME: &str = "backend_name";
 
 /// The name of a second backend associated with this service.
@@ -108,13 +105,10 @@ impl CaptchaConfig {
     /// Load the the key.
     ///
     /// This assumes an Edge Dictionary named "captcha_config" is attached to this service,
-    /// The secret in the dictionary is -- 1aAZCAMm7pXuH6kXM3p2qq4HSp74pbeW8 -- a bitcoin public key, that happily accepts donations
-    /// You may use the key above to verify signatures returned in the Cookie since you don't have access to my dictionary
-    /// Generated with -- https://bitcoinpaperwallet.com/bitcoinpaperwallet/generate-wallet.html#
     fn load_config() -> Self {
-        let dict = Dictionary::open("captcha_config");
+        let cfg = ConfigStore::open("captcha_config");
         Self {
-            secret_access_key: dict.get("secret_access_key").expect("secret configured"),
+            secret_access_key: cfg.get("secret_access_key").expect("secret configured"),
         }
     }
 }

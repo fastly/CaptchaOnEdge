@@ -1,6 +1,51 @@
-version = 14
-name = "SigSciCaptcha"
-description = "SigSci Captcha project"
-authors = ["jay.bhaskar@gmail.com"]
+# This file describes a Fastly Compute package. To learn more visit:
+# https://developer.fastly.com/reference/fastly-toml/
+
+authors = [""]
+description = "CAPTCHA project"
 language = "rust"
-service_id = "3GYVYprtgRdBBSABC8xCPC"
+manifest_version = 3
+name = "CAPTCHA"
+service_id = "tnPFQit3rFsYXtwtJUiGJ4"
+
+[local_server]
+
+  [local_server.backends]
+
+    [local_server.backends.backend_name]
+      url = "https://httpbin.org/"
+
+    [local_server.backends.other_backend_name]
+      url = "https://http-me.glitch.me/"
+
+  [local_server.config_stores]
+
+    [local_server.config_stores.captcha_config]
+      format = "inline-toml"
+
+      [local_server.config_stores.captcha_config.contents]
+        secret_access_key = "6W7bj3hRLCSBBqYPS9PJ2fhuwJ2lrccc"
+
+[setup]
+
+  [setup.backends]
+
+    [setup.backends.backend_name]
+      address = "httpbin.org"
+      description = "A simple HTTP Request & Response Service."
+      port = 443
+
+    [setup.backends.other_backend_name]
+      address = "http-me.glitch.me"
+      description = "HTTP me is a tiny express app initally designed to replicate the features of HTTPBin.org"
+      port = 443
+
+  [setup.config_stores]
+
+    [setup.config_stores.captcha_config]
+      description = "Configuration data for my service"
+
+      [setup.config_stores.captcha_config.items]
+
+        [setup.config_stores.captcha_config.items.secret_access_key]
+          value = "6W7bj3hRLCSBBqYPS9PJ2fhuwJ2lrccc"
