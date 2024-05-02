@@ -1,5 +1,5 @@
 [package]
-name = "CAPTCHA"
+name = "edge-captcha-demo"
 version = "0.2.0"
 authors = []
 edition = "2018"
@@ -8,13 +8,9 @@ edition = "2018"
 debug = true
 
 [dependencies]
-fastly = "0.9.8"
-http = "0.2.9"
+fastly = "0.10.0"
 captcha = "0.0.9"
-
 lazy_static = "1.4.0"
-
 hmac-sha256 = "1.1.7"
 cookie = { version = "0.18.0", features = ["signed"] }
 hex = "0.4.3"
-

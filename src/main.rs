@@ -1,30 +1,20 @@
-
 #[macro_use]
 extern crate lazy_static;
 
-use hmac_sha256::{Hash, HMAC};
-use hex::encode;
+use hmac_sha256::HMAC;
 
-use std::str;
 use cookie::Cookie;
+use std::str;
 
-use fastly::http::{header, HeaderValue, Method, StatusCode};
-use fastly::{Body, Error, Request, Response, ConfigStore};
+use fastly::http::{Method, StatusCode};
+use fastly::{Body, ConfigStore, Error, Request, Response};
 
 extern crate captcha;
-use captcha::{gen, Difficulty};
+use captcha::filters::Noise;
 use captcha::Captcha;
-use captcha::filters::{Noise, Wave, Dots};
-
-use std::convert::TryFrom;
+use captcha::{gen, Difficulty};
 
 use std::collections::HashMap;
-
-/// The name of a backend server associated with this service.
-const BACKEND_NAME: &str = "backend_name";
-
-/// The name of a second backend associated with this service.
-const OTHER_BACKEND_NAME: &str = "other_backend_name";
 
 /// A page has a body and a content-type.
 struct Page {
@@ -51,9 +41,16 @@ lazy_static! {
             },
         );
         f.insert(
-            "/bootstrap.min.css",
+            "/fastly.svg",
             Page {
-                body: include_bytes!("../static/bootstrap.min.css"),
+                body: include_bytes!("../static/fastly.svg"),
+                content_type: "image/svg+xml",
+            },
+        );
+        f.insert(
+            "/style.css",
+            Page {
+                body: include_bytes!("../static/style.css"),
                 content_type: "text/css",
             },
         );
@@ -78,27 +75,12 @@ lazy_static! {
                 content_type: "application/octet-stream",
             },
         );
-	f.insert(
-            "/moment.js",
-            Page {
-                body: include_bytes!("../static/moment.js"),
-                content_type: "application/javascript",
-            },
-        );
-	f.insert(
-            "/jquery-3.6.0.min.js",
-            Page {
-                body: include_bytes!("../static/jquery-3.6.0.min.js"),
-                content_type: "application/javascript",
-            },
-        );
         f
     };
 }
 
-
 struct CaptchaConfig {
-   secret_access_key: String
+    secret_access_key: String,
 }
 
 impl CaptchaConfig {
@@ -122,128 +104,91 @@ impl CaptchaConfig {
 /// If `main` returns an error, a 500 error response will be delivered to the client.
 #[fastly::main]
 fn main(mut req: Request) -> Result<Response, Error> {
-
-    let new_req = req.clone_with_body();
-    let mut path = new_req.get_path().to_string();
-
-    if path.ends_with("/") {
-        path.push_str("index.html");
+    if req.get_path().ends_with('/') {
+        req.set_path(&format!("{}index.html", req.get_path()));
     }
-    let path_string = path.as_str();
-   println!("Hello from the root path! {}", path_string);
 
-    // Make any desired changes to the client request.
-    // We can filter requests that have unexpected methods.
-    const VALID_METHODS: [Method; 3] = [Method::HEAD, Method::GET, Method::POST];
-
-    if !(VALID_METHODS.contains(req.get_method())) {
-
-        return Ok(Response::new()
-            .with_status(StatusCode::METHOD_NOT_ALLOWED)
-            .with_body(Body::from("This method is not allowed")));
-    }
+    println!(
+        "Request received: {} {}",
+        req.get_method_str(),
+        req.get_path()
+    );
 
     let captcha_config = CaptchaConfig::load_config();
-    let captcha_secret_string = format!("{}", captcha_config.secret_access_key).into_bytes();
+    let captcha_secret_string = captcha_config.secret_access_key.to_string().into_bytes();
 
     // Pattern match on the request method and path.
-
     match (req.get_method(), req.get_path()) {
         // If request is a `GET` to the `/` path, send a default response.
-        (&Method::GET, _) if FILES.contains_key(path_string) => {
-        if FILES[path_string].content_type.contains("image") {
-
-        Ok(Response::new()
-        .with_status(StatusCode::OK)
-        .with_header("Cache-Control", "max-age=10")
-        .with_header("Content-Type", FILES[path_string].content_type)
-        .with_header("Access-Control-Allow-Origin", "*")
-        .with_body(Body::try_from(FILES[path_string].body)?))
-        } else {
-
-        Ok(Response::new()
-        .with_status(StatusCode::OK)
-        .with_header("Cache-Control", "max-age=10")
-        .with_header("Content-Type", FILES[path_string].content_type)
-        .with_header("Access-Control-Allow-Origin", "*")
-        .with_header("X-Compress-Hint", "on")
-        .with_body(Body::try_from(FILES[path_string].body)?))
-        }
-        }
+        (&Method::GET, path) if FILES.contains_key(path) => Ok(Response::new()
+            .with_status(StatusCode::OK)
+            .with_header("Cache-Control", "max-age=10")
+            .with_header("Content-Type", FILES[path].content_type)
+            .with_header("Access-Control-Allow-Origin", "*")
+            .with_body(FILES[path].body)),
 
         (&Method::GET, "/generateCaptcha") => {
-
             gen(Difficulty::Easy).as_png();
             let mut cap_tcha = Captcha::new();
-            cap_tcha.add_chars(5)
+            cap_tcha
+                .add_chars(5)
                 .apply_filter(Noise::new(0.1))
                 .view(220, 80);
             let img_cap = cap_tcha.as_png().unwrap();
-            let wav_cap = cap_tcha.as_wav();
-            let string_to_sign = format!("{}", cap_tcha.chars_as_string());
 
-            let captcha_signature = &sign(&captcha_secret_string, &string_to_sign);
+            let captcha_signature = &sign(
+                &captcha_secret_string,
+                cap_tcha.chars_as_string().as_bytes(),
+            );
 
             Ok(Response::new()
                 .with_status(StatusCode::OK)
-                .with_header("Cache-Control", "max-age=600")
+                .with_header("Cache-Control", "private, no-store")
                 .with_header("Access-Control-Allow-Origin", "*")
                 .with_header("Content-Type", "image/png")
-                .with_header("Custom-Header", "Fastly Captcha")
-                .with_header("set-cookie", format!("captcha-string={}; SameSite=None; Secure", hex::encode(captcha_signature)))
-                .with_body(Body::try_from(img_cap)?))
-
+                .with_header(
+                    "set-cookie",
+                    format!(
+                        "captcha-string={}; SameSite=None; Secure",
+                        hex::encode(captcha_signature)
+                    ),
+                )
+                .with_body(img_cap))
         }
         // If request is a `GET` to the `/backend` path, send to a named backend.
         (&Method::POST, "/verifyCaptcha") => {
+            let body = req.take_body();
 
-	  let org_req1 = req.clone_with_body();
-	  let org_req2 = req.clone_with_body();
-
-          let cookie_value = {
-
-                let c = Cookie::parse(org_req1.get_header_str("cookie").unwrap()).unwrap();
+            let cookie_value: Option<&str> = {
+                let c = Cookie::parse(
+                    req.get_header_str("cookie")
+                        .expect("no Cookie header provided"),
+                )
+                .unwrap();
                 c.value_raw()
             };
 
-            let cookie_clone = cookie_value.clone();
+            let body_hex = hex::encode(sign(&captcha_secret_string, body.into_bytes().as_slice()));
 
-            let body = org_req2.into_body();
-            let body_hex = hex::encode(&sign(&captcha_secret_string, &body.into_string()));
-            let body_hex_clone = body_hex.clone();
-
-            if body_hex == cookie_value.unwrap()
-            {
-                    Ok(Response::new()
-                        .with_status(StatusCode::OK)
-                        .with_body(Body::try_from("")?))
-                }
-                else {
-
-                    Ok(Response::new()
-                        .with_status(StatusCode::NOT_ACCEPTABLE)
-                        .with_header("captcha-string", body_hex_clone)
-                        .with_body(Body::try_from("")?))
-                }
+            if body_hex == cookie_value.unwrap() {
+                Ok(Response::new()
+                    .with_status(StatusCode::OK)
+                    .with_header("Cache-Control", "private, no-store"))
+            } else {
+                Ok(Response::new()
+                    .with_status(StatusCode::NOT_ACCEPTABLE)
+                    .with_header("captcha-string", body_hex))
+            }
         }
 
         // Catch all other requests and return a 404.
-        _ =>
-        	Ok(Response::new()
-            	.with_status(StatusCode::NOT_FOUND)
-            	.with_body(Body::from("The page you requested could not be found"))),
+        _ => Ok(Response::new()
+            .with_status(StatusCode::NOT_FOUND)
+            .with_body(Body::from("The page you requested could not be found"))),
     }
 }
 
 /// Generate HMAC hash of message with key
-fn sign(key: &[u8], message: &str) -> [u8; 32] {
-    HMAC::mac(message.as_bytes(), key)
+fn sign<'a>(key: &[u8], message: impl Into<&'a [u8]>) -> [u8; 32] {
+    HMAC::mac(message.into(), key)
 }
-
-//#[derive(Serialize)]
-struct NewCaptchaResponse {
-    id: String,
-    png: String,
-    solution: String,
-}
-
