@@ -2,7 +2,7 @@ const input = document.getElementById('input');
 const output = document.getElementById('output');
 
 function generateCaptcha() {
-  fetch('https://captcha.edgecompute.app/generateCaptcha', {
+  fetch('/generateCaptcha', {
     cache: 'no-cache',
     mode: 'cors'
   })
@@ -23,13 +23,13 @@ $( document ).ready(generateCaptcha());
 function verifyCaptcha() {
   const captcha_string = captcha_text.value;
 
-  var response = fetch('https://captcha.edgecompute.app/verifyCaptcha', {
+  var response = fetch('/verifyCaptcha', {
     method: 'POST',
     body: captcha_string,
   }).then(function(response) {
 
        if (!response.ok) {
-               fetch('https://captcha.edgecompute.app/generateCaptcha', {
+               fetch('/generateCaptcha', {
                    cache: 'no-cache',
                    mode: 'cors'
                  })
