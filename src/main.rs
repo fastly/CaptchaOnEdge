@@ -104,14 +104,15 @@ impl CaptchaConfig {
 /// If `main` returns an error, a 500 error response will be delivered to the client.
 #[fastly::main]
 fn main(mut req: Request) -> Result<Response, Error> {
-    let new_req = req.clone_with_body();
-    let mut path = new_req.get_path().to_string();
-
-    if path.ends_with('/') {
-        path.push_str("index.html");
+    if req.get_path().ends_with('/') {
+        req.set_path(&format!("{}index.html", req.get_path()));
     }
-    let path_string = path.as_str();
-    println!("Request received: {} {}", req.get_method_str(), path_string);
+
+    println!(
+        "Request received: {} {}",
+        req.get_method_str(),
+        req.get_path()
+    );
 
     // Make any desired changes to the client request.
     // We can filter requests that have unexpected methods.
@@ -130,22 +131,22 @@ fn main(mut req: Request) -> Result<Response, Error> {
 
     match (req.get_method(), req.get_path()) {
         // If request is a `GET` to the `/` path, send a default response.
-        (&Method::GET, _) if FILES.contains_key(path_string) => {
-            if FILES[path_string].content_type.contains("image") {
+        (&Method::GET, path) if FILES.contains_key(path) => {
+            if FILES[path].content_type.contains("image") {
                 Ok(Response::new()
                     .with_status(StatusCode::OK)
                     .with_header("Cache-Control", "max-age=10")
-                    .with_header("Content-Type", FILES[path_string].content_type)
+                    .with_header("Content-Type", FILES[path].content_type)
                     .with_header("Access-Control-Allow-Origin", "*")
-                    .with_body(FILES[path_string].body))
+                    .with_body(FILES[path].body))
             } else {
                 Ok(Response::new()
                     .with_status(StatusCode::OK)
                     .with_header("Cache-Control", "max-age=10")
-                    .with_header("Content-Type", FILES[path_string].content_type)
+                    .with_header("Content-Type", FILES[path].content_type)
                     .with_header("Access-Control-Allow-Origin", "*")
                     .with_header("X-Compress-Hint", "on")
-                    .with_body(FILES[path_string].body))
+                    .with_body(FILES[path].body))
             }
         }
 
@@ -157,9 +158,11 @@ fn main(mut req: Request) -> Result<Response, Error> {
                 .apply_filter(Noise::new(0.1))
                 .view(220, 80);
             let img_cap = cap_tcha.as_png().unwrap();
-            let string_to_sign = cap_tcha.chars_as_string().to_string();
 
-            let captcha_signature = &sign(&captcha_secret_string, &string_to_sign);
+            let captcha_signature = &sign(
+                &captcha_secret_string,
+                cap_tcha.chars_as_string().as_bytes(),
+            );
 
             Ok(Response::new()
                 .with_status(StatusCode::OK)
@@ -178,24 +181,25 @@ fn main(mut req: Request) -> Result<Response, Error> {
         }
         // If request is a `GET` to the `/backend` path, send to a named backend.
         (&Method::POST, "/verifyCaptcha") => {
-            let org_req1 = req.clone_with_body();
-            let org_req2 = req.clone_with_body();
+            let body = req.take_body();
 
-            let cookie_value = {
-                let c = Cookie::parse(org_req1.get_header_str("cookie").unwrap()).unwrap();
+            let cookie_value: Option<&str> = {
+                let c = Cookie::parse(
+                    req.get_header_str("cookie")
+                        .expect("no Cookie header provided"),
+                )
+                .unwrap();
                 c.value_raw()
             };
 
-            let body = org_req2.into_body();
-            let body_hex = hex::encode(sign(&captcha_secret_string, &body.into_string()));
-            let body_hex_clone = body_hex.clone();
+            let body_hex = hex::encode(sign(&captcha_secret_string, body.into_bytes().as_slice()));
 
             if body_hex == cookie_value.unwrap() {
                 Ok(Response::new().with_status(StatusCode::OK))
             } else {
                 Ok(Response::new()
                     .with_status(StatusCode::NOT_ACCEPTABLE)
-                    .with_header("captcha-string", body_hex_clone))
+                    .with_header("captcha-string", body_hex))
             }
         }
 
@@ -207,6 +211,6 @@ fn main(mut req: Request) -> Result<Response, Error> {
 }
 
 /// Generate HMAC hash of message with key
-fn sign(key: &[u8], message: &str) -> [u8; 32] {
-    HMAC::mac(message.as_bytes(), key)
+fn sign<'a>(key: &[u8], message: impl Into<&'a [u8]>) -> [u8; 32] {
+    HMAC::mac(message.into(), key)
 }
