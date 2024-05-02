@@ -4,14 +4,12 @@ function generateCaptcha() {
     mode: "cors",
   })
     .then(function (data) {
-      document.getElementById("progress").textContent = "Loading";
       return data.blob();
     })
     .then(function (img) {
       var dd = URL.createObjectURL(img);
-      document.getElementById("progress").textContent = "";
-      document.getElementById("output").innerHTML =
-        '<img src="" id="imgOutput" alt=""  width="500px" />';
+      document.getElementById("header").textContent =
+        "Verify that you are human";
       document.getElementById("imgOutput").src = dd;
     });
 }
@@ -31,20 +29,19 @@ function verifyCaptcha() {
         mode: "cors",
       })
         .then(function (data) {
-          document.getElementById("progress").textContent = "Loading";
+          document.getElementById("header").textContent = "Validating...";
           return data.blob();
         })
         .then(function (img) {
           var dd = URL.createObjectURL(img);
-          document.getElementById("progress").textContent = "";
-          document.getElementById("capheader").innerHTML = "<h2>Try again</h2>";
-          document.getElementById("output").innerHTML =
-            '<img src="" id="imgOutput" alt=""  width="500px" />';
+          document.getElementById("header").textContent =
+            "Incorrect, please try again";
           document.getElementById("imgOutput").src = dd;
         });
     } else {
-      document.getElementById("capheader").innerHTML =
-        "<h2>Captcha verified, refreshing...</h2>";
+      document.getElementById("header").textContent =
+        "Captcha verified, refreshing...";
+      document.getElementById("captcha").style.display = "none";
       setTimeout(function () {
         window.location.reload();
       }, 4000);
@@ -61,7 +58,7 @@ function isValueValid(inptxt) {
   }
 }
 
-document.getElementById("myform").addEventListener("submit", function (e) {
+document.getElementById("captcha").addEventListener("submit", function (e) {
   e.preventDefault(); //stop form from submitting
 
   if (!isValueValid(this.captcha_text.value)) return;

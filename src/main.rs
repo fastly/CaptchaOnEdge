@@ -51,9 +51,16 @@ lazy_static! {
             },
         );
         f.insert(
-            "/bootstrap.min.css",
+            "/fastly.svg",
             Page {
-                body: include_bytes!("../static/bootstrap.min.css"),
+                body: include_bytes!("../static/fastly.svg"),
+                content_type: "image/svg+xml",
+            },
+        );
+        f.insert(
+            "/style.css",
+            Page {
+                body: include_bytes!("../static/style.css"),
                 content_type: "text/css",
             },
         );
