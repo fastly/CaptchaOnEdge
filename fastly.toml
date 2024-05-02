@@ -5,7 +5,7 @@ authors = [""]
 description = "CAPTCHA project"
 language = "rust"
 manifest_version = 3
-name = "CAPTCHA"
+name = "edge-captcha-demo"
 service_id = "tnPFQit3rFsYXtwtJUiGJ4"
 
 [local_server]

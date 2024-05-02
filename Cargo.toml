@@ -1,5 +1,5 @@
 [package]
-name = "CAPTCHA"
+name = "edge-captcha-demo"
 version = "0.2.0"
 authors = []
 edition = "2018"
