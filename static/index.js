@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", generateCaptcha);
 function verifyCaptcha() {
   const captcha_string = document.getElementById("captcha_text").value;
 
+  document.getElementById("header").textContent = "Validating...";
+
   var response = fetch("/verifyCaptcha", {
     method: "POST",
     body: captcha_string,
@@ -29,7 +31,6 @@ function verifyCaptcha() {
         mode: "cors",
       })
         .then(function (data) {
-          document.getElementById("header").textContent = "Validating...";
           return data.blob();
         })
         .then(function (img) {
