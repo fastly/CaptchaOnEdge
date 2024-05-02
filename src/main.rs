@@ -114,41 +114,18 @@ fn main(mut req: Request) -> Result<Response, Error> {
         req.get_path()
     );
 
-    // Make any desired changes to the client request.
-    // We can filter requests that have unexpected methods.
-    const VALID_METHODS: [Method; 3] = [Method::HEAD, Method::GET, Method::POST];
-
-    if !(VALID_METHODS.contains(req.get_method())) {
-        return Ok(Response::new()
-            .with_status(StatusCode::METHOD_NOT_ALLOWED)
-            .with_body(Body::from("This method is not allowed")));
-    }
-
     let captcha_config = CaptchaConfig::load_config();
     let captcha_secret_string = captcha_config.secret_access_key.to_string().into_bytes();
 
     // Pattern match on the request method and path.
-
     match (req.get_method(), req.get_path()) {
         // If request is a `GET` to the `/` path, send a default response.
-        (&Method::GET, path) if FILES.contains_key(path) => {
-            if FILES[path].content_type.contains("image") {
-                Ok(Response::new()
-                    .with_status(StatusCode::OK)
-                    .with_header("Cache-Control", "max-age=10")
-                    .with_header("Content-Type", FILES[path].content_type)
-                    .with_header("Access-Control-Allow-Origin", "*")
-                    .with_body(FILES[path].body))
-            } else {
-                Ok(Response::new()
-                    .with_status(StatusCode::OK)
-                    .with_header("Cache-Control", "max-age=10")
-                    .with_header("Content-Type", FILES[path].content_type)
-                    .with_header("Access-Control-Allow-Origin", "*")
-                    .with_header("X-Compress-Hint", "on")
-                    .with_body(FILES[path].body))
-            }
-        }
+        (&Method::GET, path) if FILES.contains_key(path) => Ok(Response::new()
+            .with_status(StatusCode::OK)
+            .with_header("Cache-Control", "max-age=10")
+            .with_header("Content-Type", FILES[path].content_type)
+            .with_header("Access-Control-Allow-Origin", "*")
+            .with_body(FILES[path].body)),
 
         (&Method::GET, "/generateCaptcha") => {
             gen(Difficulty::Easy).as_png();
@@ -166,10 +143,9 @@ fn main(mut req: Request) -> Result<Response, Error> {
 
             Ok(Response::new()
                 .with_status(StatusCode::OK)
-                .with_header("Cache-Control", "max-age=600")
+                .with_header("Cache-Control", "private, no-store")
                 .with_header("Access-Control-Allow-Origin", "*")
                 .with_header("Content-Type", "image/png")
-                .with_header("Custom-Header", "Fastly Captcha")
                 .with_header(
                     "set-cookie",
                     format!(
@@ -195,7 +171,9 @@ fn main(mut req: Request) -> Result<Response, Error> {
             let body_hex = hex::encode(sign(&captcha_secret_string, body.into_bytes().as_slice()));
 
             if body_hex == cookie_value.unwrap() {
-                Ok(Response::new().with_status(StatusCode::OK))
+                Ok(Response::new()
+                    .with_status(StatusCode::OK)
+                    .with_header("Cache-Control", "private, no-store"))
             } else {
                 Ok(Response::new()
                     .with_status(StatusCode::NOT_ACCEPTABLE)

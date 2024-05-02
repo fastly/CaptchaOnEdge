@@ -1,8 +1,5 @@
 function generateCaptcha() {
-  fetch("/generateCaptcha", {
-    cache: "no-cache",
-    mode: "cors",
-  })
+  fetch("/generateCaptcha")
     .then(function (data) {
       return data.blob();
     })
@@ -26,10 +23,7 @@ function verifyCaptcha() {
     body: captcha_string,
   }).then(function (response) {
     if (!response.ok) {
-      fetch("/generateCaptcha", {
-        cache: "no-cache",
-        mode: "cors",
-      })
+      fetch("/generateCaptcha")
         .then(function (data) {
           return data.blob();
         })
