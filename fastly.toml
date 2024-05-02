@@ -10,14 +10,6 @@ service_id = "tnPFQit3rFsYXtwtJUiGJ4"
 
 [local_server]
 
-  [local_server.backends]
-
-    [local_server.backends.backend_name]
-      url = "https://httpbin.org/"
-
-    [local_server.backends.other_backend_name]
-      url = "https://http-me.glitch.me/"
-
   [local_server.config_stores]
 
     [local_server.config_stores.captcha_config]
@@ -27,18 +19,6 @@ service_id = "tnPFQit3rFsYXtwtJUiGJ4"
         secret_access_key = "6W7bj3hRLCSBBqYPS9PJ2fhuwJ2lrccc"
 
 [setup]
-
-  [setup.backends]
-
-    [setup.backends.backend_name]
-      address = "httpbin.org"
-      description = "A simple HTTP Request & Response Service."
-      port = 443
-
-    [setup.backends.other_backend_name]
-      address = "http-me.glitch.me"
-      description = "HTTP me is a tiny express app initally designed to replicate the features of HTTPBin.org"
-      port = 443
 
   [setup.config_stores]
 
