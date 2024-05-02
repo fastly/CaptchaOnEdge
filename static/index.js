@@ -49,19 +49,8 @@ function verifyCaptcha() {
   });
 }
 
-function isValueValid(inptxt) {
-  var letters = /^[0-9a-zA-Z]+$/;
-  if (inptxt.match(letters)) {
-    return true;
-  } else {
-    alert("Please enter alphanumeric values only for Captcha");
-  }
-}
-
 document.getElementById("captcha").addEventListener("submit", function (e) {
   e.preventDefault(); //stop form from submitting
-
-  if (!isValueValid(this.captcha_text.value)) return;
 
   verifyCaptcha();
 });

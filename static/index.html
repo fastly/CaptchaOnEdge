@@ -27,7 +27,7 @@
         >
 
         <div class="inputGroup">
-          <input type="text" name="captcha_text" id="captcha_text" required />
+          <input type="text" name="captcha_text" id="captcha_text" pattern="^[0-9a-zA-Z]+$" title="This captcha use only letters and numbers." required />
           <button type="submit">Submit</button>
         </div>
       </form>
